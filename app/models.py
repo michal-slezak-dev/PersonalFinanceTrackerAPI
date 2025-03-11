@@ -14,6 +14,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.now)
 
     expenses: Mapped[List["Expense"]] = relationship("Expense", back_populates="user")
 
@@ -30,9 +31,10 @@ class Expense(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     amount: Mapped[float] = mapped_column(Float, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=True)
     date: Mapped[date] = mapped_column(Date, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.now)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("User.id"))
     category_id: Mapped[int] = mapped_column(ForeignKey("Category.id"))
