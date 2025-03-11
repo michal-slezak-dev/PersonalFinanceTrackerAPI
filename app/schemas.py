@@ -1,6 +1,6 @@
 # define Pydantic schemas (data validation)
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, EmailStr
 from datetime import datetime, date
 from typing import Optional, List
 
@@ -22,6 +22,11 @@ class ExpenseCreate(BaseModel):
     category_id: int
     user_id: int
 
+    @field_validator("amount")
+    def validate_amount(cls, value):
+        if value < 0:
+            raise ValueError("amount cannot be negative")
+        return value
 
 class ExpenseResponse(BaseModel):
     id: int
@@ -38,8 +43,24 @@ class ExpenseResponse(BaseModel):
 
 class UserCreate(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
+
+    @field_validator("username")
+    def validate_username(cls, value):
+        if not value.isalnum():
+            raise ValueError("username must be alphanumeric")
+        return value
+
+
+    @field_validator("password")
+    def validate_password_length(cls, value):
+        if len(value) < 8:
+            raise ValueError("password must be at least 8 characters")
+
+        if any(c.isspace() for c in value):
+            raise ValueError("password must not contain spaces")
+        return value
 
 
 class UserResponse(BaseModel):
@@ -56,3 +77,9 @@ class UserResponse(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+    @field_validator("username")
+    def validate_username(cls, value):
+        if not value.isalnum():
+            raise ValueError("username must be alphanumeric")
+        return value
