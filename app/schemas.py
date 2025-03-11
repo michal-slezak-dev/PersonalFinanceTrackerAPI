@@ -45,6 +45,8 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+    first_name: str
+    last_name: str
 
     @field_validator("username")
     def validate_username(cls, value):
@@ -67,6 +69,8 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    first_name: str
+    last_name: str
     created_at: datetime
     updated_at: Optional[datetime]
     expenses: List["ExpenseResponse"]
