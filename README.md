@@ -11,4 +11,4 @@ An API built to help users track their expenses, set budgets, and categorize the
 - **Export Data**: Export expense data to CSV or PDF.
 - **Expense Analytics**: View spending patterns through charts (optional feature).
 
-![img.png](img.png)
+![img_1.png](img_1.png)
