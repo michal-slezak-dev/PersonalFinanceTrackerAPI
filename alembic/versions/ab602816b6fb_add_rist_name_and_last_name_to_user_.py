@@ -1,4 +1,4 @@
-"""Add rist_name and last_name to User model
+"""Add first_name and last_name to User model
 
 Revision ID: ab602816b6fb
 Revises: e76feb21d592
