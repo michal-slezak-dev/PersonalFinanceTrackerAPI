@@ -1,4 +1,4 @@
-# Define database models (tables)
+# define database models (tables)
 
 from typing import List
 from sqlalchemy import Integer, String, Text, Float, ForeignKey, DateTime, Date

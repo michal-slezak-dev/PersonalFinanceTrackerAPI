@@ -1,4 +1,4 @@
-# Define Pydantic schemas (data validation)
+# define Pydantic schemas (data validation)
 
 from pydantic import BaseModel
 from datetime import datetime, date
