@@ -1,1 +1,1 @@
-# Expense-related endpoints
+# expense-related endpoints

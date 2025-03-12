@@ -15,7 +15,7 @@ engine = create_engine(DATABASE_URL)
 # create a session factory (for handling DB transactions)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for sqlalchemy models
+# base class for sqlalchemy models
 Base = declarative_base()
 
 
