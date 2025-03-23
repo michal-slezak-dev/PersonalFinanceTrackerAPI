@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from .models import User, Expense, Category
 from .schemas import UserCreate, ExpenseCreate, CategoryCreate
-from app.core.security import get_password_hash
+from .core.security import get_password_hash
 from typing import Type, Dict
 
 def create_item(db: Session, model: Type[User | Expense | Category], item_data: Dict):
