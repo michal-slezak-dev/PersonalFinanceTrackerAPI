@@ -1,45 +1,46 @@
 # define database models (tables)
 
-from typing import List
-from sqlalchemy import Integer, String, Text, Float, ForeignKey, DateTime, Date
-from sqlalchemy.orm import relationship, Mapped, mapped_column
-from datetime import datetime, date
-from database import Base
+from sqlalchemy import Column, String, Float, ForeignKey, DateTime, Date, Integer, Boolean
+from sqlalchemy.orm import relationship
+from .database import (Base)
+from sqlalchemy import func
 
 class User(Base):
-    __tablename__ =  "User"
+    __tablename__ =  "user"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
-    first_name: Mapped[str] = mapped_column(String, nullable=False)
-    last_name: Mapped[str] = mapped_column(String, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.now)
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
+    is_admin = Column(Boolean, default=False)
 
-    expenses: Mapped[List["Expense"]] = relationship("Expense", back_populates="user")
+    expenses = relationship("Expense", back_populates="user")
 
 class Category(Base):
-    __tablename__ = "Category"
+    __tablename__ = "category"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    category_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    category_name = Column(String, unique=True, nullable=False)
 
-    expenses: Mapped[List["Expense"]] = relationship("Expense", back_populates="category")
+    expenses = relationship("Expense", back_populates="category")
 
 class Expense(Base):
-    __tablename__ = "Expense"
+    __tablename__ = "expense"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=True)
-    date: Mapped[date] = mapped_column(Date, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.now)
+    id = Column(Integer, primary_key=True, index=True)
+    amount = Column(Float, nullable=False)
+    description = Column(String, nullable=True)
+    date = Column(Date, nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("User.id"))
-    category_id: Mapped[int] = mapped_column(ForeignKey("Category.id"))
+    user_id = Column(ForeignKey("user.id"))
+    category_id = Column(ForeignKey("category.id"))
 
-    user: Mapped[User] = relationship("User", back_populates="expenses")
-    category: Mapped[Category] = relationship("Category", back_populates="expenses")
+    user = relationship("User", back_populates="expenses")
+    category = relationship("Category", back_populates="expenses")
+
