@@ -87,3 +87,10 @@ class LoginRequest(BaseModel):
         if not value.isalnum():
             raise ValueError("username must be alphanumeric")
         return value
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    id: int
