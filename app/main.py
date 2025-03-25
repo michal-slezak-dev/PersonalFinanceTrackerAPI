@@ -51,9 +51,6 @@ def get_current_user(db: db_dependency, token: str = Depends(oauth2_scheme)):
     return user
 
 
-
-
-
 @app.get("/")
 def read_root():
     return {"message": "Hello World"}
@@ -95,15 +92,9 @@ async def login_for_access_token(db: db_dependency, form_data: OAuth2PasswordReq
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.patch("/v1/users/{user_id}", response_model=UserResponse)
-async def update_user_data(user_id: int, user_update: UserUpdate, db: db_dependency, current_user: User = Depends(get_current_user)):
-    if user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not allowed to update this user"
-        )
-
-    user = db.query(User).filter(User.id == user_id).first()
+@app.patch("/v1/users/me", response_model=UserResponse)
+async def update_user_data(user_update: UserUpdate, db: db_dependency, current_user: User = Depends(get_current_user)):
+    user = db.query(User).filter(User.id == current_user.id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -121,7 +112,7 @@ async def update_user_data(user_id: int, user_update: UserUpdate, db: db_depende
     user_update_data["updated_at"] = func.now()
 
 
-    return update_user(db, user_id, user_update_data)
+    return update_user(db, current_user.id, user_update_data)
 
 
 
