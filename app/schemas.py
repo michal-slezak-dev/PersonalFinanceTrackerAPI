@@ -1,6 +1,6 @@
 # define Pydantic schemas (data validation)
 
-from pydantic import BaseModel, field_validator, EmailStr
+from pydantic import BaseModel, field_validator, EmailStr, Field
 from datetime import datetime, date
 from typing import Optional, List
 
@@ -77,6 +77,22 @@ class UserResponse(BaseModel):
 
     class Config: # returns data from the DB
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = Field(None, examples=[None])
+    last_name: Optional[str] = Field(None, examples=[None])
+    password: Optional[str] = Field(None, examples=[None])
+
+    @field_validator("password")
+    def validate_password_length(cls, value):
+        if value is not None:
+            if len(value) < 8:
+                raise ValueError("password must be at least 8 characters")
+
+            if any(c.isspace() for c in value):
+                raise ValueError("password must not contain spaces")
+            return value
+
 
 class LoginRequest(BaseModel):
     username: str
