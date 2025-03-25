@@ -33,7 +33,8 @@ def update_item(db: Session, model: Type[User | Expense | Category], item_id: in
         new_data["password"] = get_password_hash(new_data["password"])
 
     for key, value in new_data.items():
-        setattr(db_item, key, value)
+        if value is not None:
+            setattr(db_item, key, value)
 
     try:
         db.commit()
