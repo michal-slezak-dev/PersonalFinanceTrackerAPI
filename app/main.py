@@ -1,6 +1,4 @@
 # entry point of the API
-import datetime
-
 import jwt
 from jwt import PyJWTError
 from fastapi import FastAPI, HTTPException, Depends, status
