@@ -10,13 +10,10 @@ from . import models
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from .crud import create_category, create_user, update_user
+from .crud import create_category, create_user, update_user, delete_user
 from .models import User
 from .schemas import CategoryCreate, UserResponse, UserCreate, UserUpdate, Token
 from .core.security import verify_password, create_access_token, verify_token, SECRET_KEY, ALGORITHM
-
-app = FastAPI()
-models.Base.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()
@@ -26,8 +23,12 @@ def get_db():
     finally:
         db.close()
 
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/token")
 db_dependency = Annotated[Session, Depends(get_db)]
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/login")
+
+app = FastAPI()
+models.Base.metadata.create_all(bind=engine)
 
 def get_current_user(db: db_dependency, token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -52,8 +53,14 @@ def get_current_user(db: db_dependency, token: str = Depends(oauth2_scheme)):
 
 
 @app.get("/")
-def read_root():
-    return {"message": "Hello World"}
+async def get_authenticated_user_info(db: db_dependency, current_user: User = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed"
+        )
+
+    return {"user": current_user}
 
 
 @app.post("/v1/register", response_model=UserResponse)
@@ -77,14 +84,14 @@ async def register_user(user_data: UserCreate, db: db_dependency):
     return create_user(db, user_data)
 
 
-@app.post("/v1/login", response_model=Token)
+@app.post("/v1/auth/token", response_model=Token)
 async def login_for_access_token(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depends()):
     user = db.query(User).filter(User.username == form_data.username).first()
 
     if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password"
+            detail="Could not validate user"
         )
 
     access_token = create_access_token(data={"sub": user.username, "id": user.id})
@@ -114,7 +121,16 @@ async def update_user_data(user_update: UserUpdate, db: db_dependency, current_u
 
     return update_user(db, current_user.id, user_update_data)
 
+@app.delete("/v1/users/me", response_model=UserResponse)
+async def remove_user(db: db_dependency, current_user: User = Depends(get_current_user)):
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
 
+    return delete_user(db, current_user.id)
 
 @app.post("/v1/categories")
 async def create_categories(category_data: CategoryCreate, db: db_dependency):
