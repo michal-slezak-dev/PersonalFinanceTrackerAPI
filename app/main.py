@@ -8,8 +8,8 @@ from . import models
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from .crud import create_category, create_user, update_user, delete_user, get_all_categories
-from .models import User
+from .crud import create_category, create_user, update_user, delete_user, get_all_categories, delete_category
+from .models import User, Category
 from .schemas import CategoryCreate, UserResponse, UserCreate, UserUpdate, Token
 from .core.security import verify_password, create_access_token, verify_token, SECRET_KEY, ALGORITHM
 
@@ -140,7 +140,7 @@ async def list_all_categories(db: db_dependency):
 
 
 @app.post("/v1/categories")
-async def create_categories(category_data: CategoryCreate, db: db_dependency, current_user: user_dependency):
+async def create_new_category(category_data: CategoryCreate, db: db_dependency, current_user: user_dependency):
     """Only admins can create new categories (for now)"""
     if not current_user.is_admin:
         raise HTTPException(
@@ -148,3 +148,16 @@ async def create_categories(category_data: CategoryCreate, db: db_dependency, cu
             detail="You are not authorized to create categories"
         )
     return create_category(db, category_data)
+
+@app.delete("/v1/categories/{category_id}")
+async def remove_category(category_id: int, db: db_dependency, current_user: user_dependency):
+    """Only admins can delete categories"""
+    category = db.query(Category).filter(Category.id == category_id).first()
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+
+    return delete_category(db, category_id)
+
