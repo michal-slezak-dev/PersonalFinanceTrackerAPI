@@ -20,7 +20,6 @@ class ExpenseCreate(BaseModel):
     description: Optional[str]
     date: date
     category_id: int
-    user_id: int
 
     @field_validator("amount")
     def validate_amount(cls, value):
