@@ -23,6 +23,21 @@ def create_item(db: Session, model: Type[User | Expense | Category], item_data: 
 
     return db_item
 
+
+def create_item_expense(db: Session, model: Type[Expense], item_data: Expense):
+
+    db_item = item_data
+
+    try:
+        db.add(db_item)
+        db.commit()
+        db.refresh(db_item)
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise SQLAlchemyError(f"Error when creating {model.__name__}: {e}")
+
+    return db_item
+
 def update_item(db: Session, model: Type[User | Expense | Category], item_id: int, new_data: Dict):
     db_item = db.query(model).filter(model.id == item_id).first()
 
@@ -76,8 +91,15 @@ def create_user(db: Session, user_data: UserCreate):
 def create_category(db: Session, category_data: CategoryCreate):
     return create_item(db, Category, category_data.model_dump())
 
-def create_expense(db: Session, expense_data: ExpenseCreate):
-    return create_item(db, Expense, expense_data.model_dump())
+def create_expense(db: Session, user_id: int, expense_data: ExpenseCreate):
+    new_expense = Expense(
+        amount=expense_data.amount,
+        description=expense_data.description,
+        date=expense_data.date,
+        category_id=expense_data.category_id,
+        user_id=user_id
+    )
+    return create_item_expense(db, Expense, new_expense)
 
 def update_user(db: Session, user_id: int, new_data: Dict):
     return update_item(db, User, user_id, new_data)
