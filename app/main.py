@@ -8,9 +8,10 @@ from . import models
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from .crud import create_category, create_user, update_user, delete_user, get_all_categories, delete_category
-from .models import User, Category
-from .schemas import CategoryCreate, UserResponse, UserCreate, UserUpdate, Token
+from .crud import create_category, create_user, update_user, delete_user, get_all_categories, delete_category, \
+    create_expense
+from .models import User, Category, Expense
+from .schemas import CategoryCreate, UserResponse, UserCreate, UserUpdate, Token, ExpenseCreate
 from .core.security import verify_password, create_access_token, verify_token, SECRET_KEY, ALGORITHM
 
 def get_db():
@@ -123,6 +124,7 @@ async def update_user_data(user_update: UserUpdate, db: db_dependency, current_u
 
     return update_user(db, current_user.id, user_update_data)
 
+
 @app.delete("/v1/users/me", response_model=UserResponse)
 async def remove_user(db: db_dependency, current_user: user_dependency):
     user = db.query(User).filter(User.id == current_user.id).first()
@@ -133,6 +135,7 @@ async def remove_user(db: db_dependency, current_user: user_dependency):
         )
 
     return delete_user(db, current_user.id)
+
 
 @app.get("/v1/categories")
 async def list_all_categories(db: db_dependency):
@@ -149,6 +152,7 @@ async def create_new_category(category_data: CategoryCreate, db: db_dependency, 
         )
     return create_category(db, category_data)
 
+
 @app.delete("/v1/categories/{category_id}")
 async def remove_category(category_id: int, db: db_dependency, current_user: user_dependency):
     """Only admins can delete categories"""
@@ -161,3 +165,14 @@ async def remove_category(category_id: int, db: db_dependency, current_user: use
 
     return delete_category(db, category_id)
 
+
+@app.post("/v1/expenses")
+async def create_new_expense(expense_data: ExpenseCreate, db: db_dependency, current_user: user_dependency):
+    existing_expense = db.query(Expense).filter(Expense.description == expense_data.description).first()
+
+    if existing_expense:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Expense already exists"
+        )
+    return create_expense(db, current_user.id, expense_data)
