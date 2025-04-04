@@ -82,7 +82,9 @@ def get_item_by_id(db: Session, model: Type[Expense | Category], item_id: int):
     if db_item:
         return db_item
 
-def get_all_items(db: Session, model: Type[Expense | Category]):
+def get_all_items(db: Session, model: Type[Expense | Category], user_id: int = None):
+    if user_id is not None and model is Type[Expense]:
+        return db.query(model).where(model.user_id == user_id)
     return db.query(model).all()
 
 def create_user(db: Session, user_data: UserCreate):
@@ -128,5 +130,5 @@ def get_expense_by_id(db: Session, expense_id: int):
 def get_all_categories(db: Session):
     return get_all_items(db, Category)
 
-def get_all_expenses(db: Session):
-    return get_all_items(db, Expense)
+def get_all_expenses(db: Session, user_id: int = None):
+    return get_all_items(db, Expense, user_id)
