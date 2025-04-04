@@ -27,6 +27,18 @@ class ExpenseCreate(BaseModel):
             raise ValueError("amount cannot be negative")
         return value
 
+class ExpenseUpdate(BaseModel):
+    amount: Optional[float] = Field(None, examples=[None])
+    description: Optional[str] = Field(None, examples=[None])
+    date: Optional[date] = Field(None, examples=[None])
+    category_id: Optional[int] = Field(None, examples=[None])
+
+    @field_validator("amount")
+    def validate_amount(cls, value):
+        if value < 0:
+            raise ValueError("amount cannot be negative")
+        return value
+
 class ExpenseResponse(BaseModel):
     id: int
     amount: float
