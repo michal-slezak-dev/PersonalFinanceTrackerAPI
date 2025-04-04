@@ -9,9 +9,9 @@ from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from .crud import create_category, create_user, update_user, delete_user, get_all_categories, delete_category, \
-    create_expense
+    create_expense, get_all_expenses, update_expense, delete_expense
 from .models import User, Category, Expense
-from .schemas import CategoryCreate, UserResponse, UserCreate, UserUpdate, Token, ExpenseCreate
+from .schemas import CategoryCreate, UserResponse, UserCreate, UserUpdate, Token, ExpenseCreate, ExpenseUpdate
 from .core.security import verify_password, create_access_token, verify_token, SECRET_KEY, ALGORITHM
 
 def get_db():
@@ -114,8 +114,10 @@ async def update_user_data(user_update: UserUpdate, db: db_dependency, current_u
     user_update_data: Dict = {}
     if user_update.first_name and user_update.first_name is not None:
         user_update_data["first_name"] = user_update.first_name
+
     if user_update.last_name and user_update.last_name is not None:
         user_update_data["last_name"] = user_update.last_name
+
     if user_update.password and user_update.password is not None:
         user_update_data["password"] = user_update.password
 
@@ -156,6 +158,12 @@ async def create_new_category(category_data: CategoryCreate, db: db_dependency, 
 @app.delete("/v1/categories/{category_id}")
 async def remove_category(category_id: int, db: db_dependency, current_user: user_dependency):
     """Only admins can delete categories"""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are not authorized to delete categories"
+        )
+
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
         raise HTTPException(
@@ -176,3 +184,45 @@ async def create_new_expense(expense_data: ExpenseCreate, db: db_dependency, cur
             detail="Expense already exists"
         )
     return create_expense(db, current_user.id, expense_data)
+
+
+@app.get("/v1/expenses")
+async def list_all_expenses(db: db_dependency, current_user: user_dependency):
+    return get_all_expenses(db, current_user.id)
+
+
+@app.patch("/v1/expenses/{expense_id}")
+async def update_expense_data(expense_id: int, expense_update: ExpenseUpdate, db: db_dependency, current_user: user_dependency):
+    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+    if not expense:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Expense not found"
+        )
+
+    expense_update_data: Dict = {}
+    if expense_update.amount and expense_update.amount is not None:
+        expense_update_data["amount"] = expense_update.amount
+
+    if expense_update.description and expense_update.description is not None:
+        expense_update_data["description"] = expense_update.description
+
+    if expense_update.date and expense_update.date is not None:
+        expense_update_data["date"] = expense_update.date
+
+    if expense_update.category_id and expense_update.category_id is not None:
+        expense_update_data["category_id"] = expense_update.category_id
+
+    return update_expense(db, expense_id, expense_update_data)
+
+
+@app.delete("/v1/expenses/{expense_id}")
+async def remove_expense(expense_id: int, db: db_dependency, current_user: user_dependency):
+    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+    if not expense:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Expense not found"
+        )
+
+    return delete_expense(db, expense_id)
